@@ -350,7 +350,12 @@ func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 	}
 
 	if boolExp.Value != value {
-		t.Errorf("boolExp.Value should be %v. got=%v", value, boolExp.Value)
+		t.Errorf("boolExp.Value should be %t. got=%t", value, boolExp.Value)
+		return false
+	}
+
+	if boolExp.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("boolExp.TokenLiteral() should be %t. got=%s", value, boolExp.TokenLiteral())
 		return false
 	}
 
