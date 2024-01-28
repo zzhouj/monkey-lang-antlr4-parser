@@ -244,6 +244,8 @@ func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{
 		return testIntegerLiteral(t, exp, v)
 	case string:
 		return testIdentifier(t, exp, v)
+	case bool:
+		return testBooleanLiteral(t, exp, v)
 	}
 	t.Errorf("type of exp not handled. got=%T", exp)
 	return false
@@ -310,6 +312,51 @@ func testInfixExpression(t *testing.T, exp ast.Expression, left interface{}, ope
 	return true
 }
 
+func TestBooleanExpressions(t *testing.T) {
+	tests := []struct {
+		input string
+		value bool
+	}{
+		{"true", true},
+		{"false", false},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		if !testBooleanLiteral(t, stmt.Expression, tt.value) {
+			continue
+		}
+	}
+}
+
+func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
+	boolExp, ok := exp.(*ast.Boolean)
+	if !ok {
+		t.Errorf("exp should be *ast.Boolean. got=%T", exp)
+		return false
+	}
+
+	if boolExp.Value != value {
+		t.Errorf("boolExp.Value should be %v. got=%v", value, boolExp.Value)
+		return false
+	}
+
+	return true
+}
+
 func TestOperatorPrecedence(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -362,6 +409,22 @@ func TestOperatorPrecedence(t *testing.T) {
 		{
 			"3 + 4 * 5 == 3 * 1 + 4 * 5",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+		{
+			"true",
+			"true",
+		},
+		{
+			"false",
+			"false",
+		},
+		{
+			"3 > 5 == false",
+			"((3 > 5) == false)",
+		},
+		{
+			"3 < 5 == true",
+			"((3 < 5) == true)",
 		},
 	}
 
