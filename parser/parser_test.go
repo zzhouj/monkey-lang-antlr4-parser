@@ -348,19 +348,19 @@ func TestBooleanExpressions(t *testing.T) {
 }
 
 func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
-	boolLiteral, ok := exp.(*ast.BooleanLiteral)
+	boolean, ok := exp.(*ast.BooleanLiteral)
 	if !ok {
 		t.Errorf("exp should be *ast.BooleanLiteral. got=%T", exp)
 		return false
 	}
 
-	if boolLiteral.Value != value {
-		t.Errorf("boolLiteral.Value should be %t. got=%t", value, boolLiteral.Value)
+	if boolean.Value != value {
+		t.Errorf("boolean.Value should be %t. got=%t", value, boolean.Value)
 		return false
 	}
 
-	if boolLiteral.TokenLiteral() != fmt.Sprintf("%t", value) {
-		t.Errorf("boolLiteral.TokenLiteral() should be %t. got=%s", value, boolLiteral.TokenLiteral())
+	if boolean.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("boolean.TokenLiteral() should be %t. got=%s", value, boolean.TokenLiteral())
 		return false
 	}
 
@@ -569,5 +569,97 @@ func TestIfElseExpression(t *testing.T) {
 
 	if !testIdentifier(t, alternative.Expression, "y") {
 		return
+	}
+}
+
+func TestFunctionLiteral(t *testing.T) {
+	input := "fn(x, y) { x + y; }"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	function, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression should be *ast.FunctionLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(function.Parameters) != 2 {
+		t.Fatalf("function.Parameters should contain 2 parameters. got=%d", len(function.Parameters))
+	}
+
+	testLiteralExpression(t, function.Parameters[0], "x")
+	testLiteralExpression(t, function.Parameters[1], "y")
+
+	if len(function.Body.Statements) != 1 {
+		t.Fatalf("function.Body.Statements should contain 1 statements. got=%d", len(function.Body.Statements))
+	}
+
+	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("function.Body.Statements[0] should be *ast.ExpressionStatement. got=%T", function.Body.Statements[0])
+	}
+
+	if !testInfixExpression(t, bodyStmt.Expression, "x", "+", "y") {
+		return
+	}
+}
+
+func TestFucntionParameters(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedParameters []string
+	}{
+		{
+			"fn() {};",
+			[]string{},
+		},
+		{
+			"fn(x) {}",
+			[]string{"x"},
+		},
+		{
+			"fn(x, y, z) {}",
+			[]string{"x", "y", "z"},
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+
+		function, ok := stmt.Expression.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("stmt.Expression should be *ast.FunctionLiteral. got=%T", stmt.Expression)
+		}
+
+		if len(function.Parameters) != len(tt.expectedParameters) {
+			t.Fatalf("number of parameters wrong. expected=%d, got=%d", len(tt.expectedParameters), len(function.Parameters))
+		}
+
+		for i, ident := range tt.expectedParameters {
+			testLiteralExpression(t, function.Parameters[i], ident)
+		}
 	}
 }
