@@ -245,7 +245,7 @@ func (p *Parser) parsePrefixExpression() ast.Expression {
 }
 
 func (p *Parser) parseBoolean() ast.Expression {
-	return &ast.Boolean{
+	return &ast.BooleanLiteral{
 		Token: p.curToken,
 		Value: p.curTokenIs(token.TRUE),
 	}

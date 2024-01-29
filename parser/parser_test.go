@@ -348,19 +348,19 @@ func TestBooleanExpressions(t *testing.T) {
 }
 
 func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
-	boolExp, ok := exp.(*ast.Boolean)
+	boolLiteral, ok := exp.(*ast.BooleanLiteral)
 	if !ok {
-		t.Errorf("exp should be *ast.Boolean. got=%T", exp)
+		t.Errorf("exp should be *ast.BooleanLiteral. got=%T", exp)
 		return false
 	}
 
-	if boolExp.Value != value {
-		t.Errorf("boolExp.Value should be %t. got=%t", value, boolExp.Value)
+	if boolLiteral.Value != value {
+		t.Errorf("boolLiteral.Value should be %t. got=%t", value, boolLiteral.Value)
 		return false
 	}
 
-	if boolExp.TokenLiteral() != fmt.Sprintf("%t", value) {
-		t.Errorf("boolExp.TokenLiteral() should be %t. got=%s", value, boolExp.TokenLiteral())
+	if boolLiteral.TokenLiteral() != fmt.Sprintf("%t", value) {
+		t.Errorf("boolLiteral.TokenLiteral() should be %t. got=%s", value, boolLiteral.TokenLiteral())
 		return false
 	}
 
