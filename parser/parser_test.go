@@ -112,7 +112,7 @@ func TestIdentifierExpression(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -154,7 +154,7 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -195,7 +195,7 @@ func TestPrefixExpressions(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -280,7 +280,7 @@ func TestInfixExpressions(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -333,7 +333,7 @@ func TestBooleanExpressions(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -480,7 +480,7 @@ func TestIfExpression(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -498,7 +498,7 @@ func TestIfExpression(t *testing.T) {
 	}
 
 	if len(exp.Consequence.Statements) != 1 {
-		t.Fatalf("exp.Consequence.Statements should contain 1 statements. got=%d", len(exp.Consequence.Statements))
+		t.Fatalf("exp.Consequence.Statements should contain 1 statement. got=%d", len(exp.Consequence.Statements))
 	}
 
 	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
@@ -524,7 +524,7 @@ func TestIfElseExpression(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -542,7 +542,7 @@ func TestIfElseExpression(t *testing.T) {
 	}
 
 	if len(exp.Consequence.Statements) != 1 {
-		t.Fatalf("exp.Consequence.Statements should contain 1 statements. got=%d", len(exp.Consequence.Statements))
+		t.Fatalf("exp.Consequence.Statements should contain 1 statement. got=%d", len(exp.Consequence.Statements))
 	}
 
 	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
@@ -559,7 +559,7 @@ func TestIfElseExpression(t *testing.T) {
 	}
 
 	if len(exp.Alternative.Statements) != 1 {
-		t.Fatalf("exp.Alternative.Statements should contain 1 statements. got=%d", len(exp.Alternative.Statements))
+		t.Fatalf("exp.Alternative.Statements should contain 1 statement. got=%d", len(exp.Alternative.Statements))
 	}
 
 	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
@@ -581,7 +581,7 @@ func TestFunctionLiteral(t *testing.T) {
 	checkParserErrors(t, p)
 
 	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 	}
 
 	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -602,7 +602,7 @@ func TestFunctionLiteral(t *testing.T) {
 	testLiteralExpression(t, function.Parameters[1], "y")
 
 	if len(function.Body.Statements) != 1 {
-		t.Fatalf("function.Body.Statements should contain 1 statements. got=%d", len(function.Body.Statements))
+		t.Fatalf("function.Body.Statements should contain 1 statement. got=%d", len(function.Body.Statements))
 	}
 
 	bodyStmt, ok := function.Body.Statements[0].(*ast.ExpressionStatement)
@@ -641,7 +641,7 @@ func TestFucntionParameters(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statements. got=%d", len(program.Statements))
+			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
@@ -662,4 +662,39 @@ func TestFucntionParameters(t *testing.T) {
 			testLiteralExpression(t, function.Parameters[i], ident)
 		}
 	}
+}
+
+func TestCallExpression(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression should be *ast.CallExpression. got=%T", stmt.Expression)
+	}
+
+	if !testIdentifier(t, exp.Function, "add") {
+		return
+	}
+
+	if len(exp.Arguments) != 3 {
+		t.Fatalf("exp.Arguments should contain 3 arguments. got=%d", len(exp.Arguments))
+	}
+
+	testLiteralExpression(t, exp.Arguments[0], 1)
+	testInfixExpression(t, exp.Arguments[1], 2, "*", 3)
+	testInfixExpression(t, exp.Arguments[2], 4, "+", 5)
 }
