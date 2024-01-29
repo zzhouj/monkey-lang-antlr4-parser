@@ -38,7 +38,7 @@ let foobar = 838383;
 	for i, tt := range tests {
 		stmt := program.Statements[i]
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
-			return
+			continue
 		}
 	}
 }
@@ -67,12 +67,12 @@ func TestLetStatements(t *testing.T) {
 
 		stmt := program.Statements[0]
 		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
-			return
+			continue
 		}
 
 		val := stmt.(*ast.LetStatement).Value
 		if !testLiteralExpression(t, val, tt.expectedValue) {
-			return
+			continue
 		}
 	}
 }
@@ -112,7 +112,7 @@ func TestReturnStatement(t *testing.T) {
 	input := `
 return 5;
 return 10;
-return 993 322;
+return 993 + 322;
 `
 	l := lexer.New(input)
 	p := New(l)
@@ -133,6 +133,46 @@ return 993 322;
 
 		if returnStmt.TokenLiteral() != "return" {
 			t.Errorf("returnStmt.TokenLiteral() should be 'return'. got=%q", returnStmt.TokenLiteral())
+			continue
+		}
+	}
+}
+
+func TestReturnStatements(t *testing.T) {
+	tests := []struct {
+		input         string
+		expectedValue interface{}
+	}{
+		{"return 5;", 5},
+		{"return x;", "x"},
+		{"return false;", false},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
+		returnStmt, ok := stmt.(*ast.ReturnStatement)
+		if !ok {
+			t.Errorf("stmt should be *ast.ReturnStatement. got=%T", stmt)
+			continue
+		}
+
+		if returnStmt.TokenLiteral() != "return" {
+			t.Errorf("returnStmt.TokenLiteral() should be 'return'. got=%q", returnStmt.TokenLiteral())
+			continue
+		}
+
+		if !testLiteralExpression(t, returnStmt.ReturnValue, tt.expectedValue) {
+			continue
 		}
 	}
 }
@@ -229,25 +269,29 @@ func TestPrefixExpressions(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			t.Errorf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			continue
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Errorf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			continue
 		}
 
 		exp, ok := stmt.Expression.(*ast.PrefixExpression)
 		if !ok {
-			t.Fatalf("stmt.Expression should be *ast.PrefixExpression. got=%T", stmt.Expression)
+			t.Errorf("stmt.Expression should be *ast.PrefixExpression. got=%T", stmt.Expression)
+			continue
 		}
 
 		if exp.Operator != tt.operator {
-			t.Fatalf("exp.Operator should be %q. got=%q", tt.operator, exp.Operator)
+			t.Errorf("exp.Operator should be %q. got=%q", tt.operator, exp.Operator)
+			continue
 		}
 
 		if !testLiteralExpression(t, exp.Right, tt.integerValue) {
-			return
+			continue
 		}
 	}
 }
@@ -314,12 +358,14 @@ func TestInfixExpressions(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			t.Errorf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			continue
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Errorf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			continue
 		}
 
 		if !testInfixExpression(t, stmt.Expression, tt.leftValue, tt.operator, tt.rightValue) {
@@ -367,12 +413,14 @@ func TestBooleanExpressions(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			t.Errorf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			continue
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Errorf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			continue
 		}
 
 		if !testBooleanLiteral(t, stmt.Expression, tt.value) {
@@ -513,6 +561,7 @@ func TestOperatorPrecedence(t *testing.T) {
 		actual := program.String()
 		if actual != tt.expected {
 			t.Errorf("expected=%q. got=%q", tt.expected, actual)
+			continue
 		}
 	}
 }
@@ -687,21 +736,25 @@ func TestFucntionParameters(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			t.Errorf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			continue
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Errorf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			continue
 		}
 
 		function, ok := stmt.Expression.(*ast.FunctionLiteral)
 		if !ok {
-			t.Fatalf("stmt.Expression should be *ast.FunctionLiteral. got=%T", stmt.Expression)
+			t.Errorf("stmt.Expression should be *ast.FunctionLiteral. got=%T", stmt.Expression)
+			continue
 		}
 
 		if len(function.Parameters) != len(tt.expectedParameters) {
-			t.Fatalf("number of parameters wrong. expected=%d, got=%d", len(tt.expectedParameters), len(function.Parameters))
+			t.Errorf("number of parameters wrong. expected=%d, got=%d", len(tt.expectedParameters), len(function.Parameters))
+			continue
 		}
 
 		for i, ident := range tt.expectedParameters {
@@ -771,21 +824,25 @@ func TestCallExpressionArguments(t *testing.T) {
 		checkParserErrors(t, p)
 
 		if len(program.Statements) != 1 {
-			t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			t.Errorf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+			continue
 		}
 
 		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
 		if !ok {
-			t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			t.Errorf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+			continue
 		}
 
 		exp, ok := stmt.Expression.(*ast.CallExpression)
 		if !ok {
-			t.Fatalf("stmt.Expression should be *ast.CallExpression. got=%T", stmt.Expression)
+			t.Errorf("stmt.Expression should be *ast.CallExpression. got=%T", stmt.Expression)
+			continue
 		}
 
 		if len(exp.Arguments) != len(tt.expectedArguments) {
-			t.Fatalf("number of arguments wrong. expected=%d, got=%d", len(tt.expectedArguments), len(exp.Arguments))
+			t.Errorf("number of arguments wrong. expected=%d, got=%d", len(tt.expectedArguments), len(exp.Arguments))
+			continue
 		}
 
 		for i, arg := range tt.expectedArguments {
