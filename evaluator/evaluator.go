@@ -30,7 +30,7 @@ func Eval(node ast.Node) object.Object {
 		return evalInfixExpression(node.Operator, left, right)
 	}
 
-	return NULL
+	return nil
 }
 
 func evalStatements(stmts []ast.Statement) object.Object {
@@ -65,7 +65,7 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	switch right {
 	case TRUE:
 		return FALSE
-	case FALSE, NULL:
+	case FALSE, NULL, nil:
 		return TRUE
 	default:
 		return FALSE
