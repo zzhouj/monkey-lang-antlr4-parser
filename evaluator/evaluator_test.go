@@ -174,6 +174,13 @@ func TestReturnStatements(t *testing.T) {
 			return 1;
 		}
 		`, 10},
+		{`
+		let add = fn(x, y) {
+			return x + y;
+		};
+		add(1, 2);
+		add(3, 4);
+		`, 7},
 	}
 
 	for _, tt := range tests {
@@ -279,5 +286,24 @@ func TestFunctionObject(t *testing.T) {
 	body := fn.Body.String()
 	if body != expectedBody {
 		t.Fatalf("body should be %q. got=%q", expectedBody, body)
+	}
+}
+
+func TestFunctionApplication(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let identity = fn(x) { x; }; identity(5);", 5},
+		{"let identity = fn(x) { return x; }; identity(5);", 5},
+		{"let double = fn(x) { x * 2; }; double(5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+		{"fn(x) { x; }(5)", 5},
+		{"fn(x) { x * 2; }(5)", 10},
+	}
+
+	for _, tt := range tests {
+		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
 }

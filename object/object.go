@@ -58,14 +58,24 @@ func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 
 type Environment struct {
 	store map[string]Object
+	outer *Environment
 }
 
 func NewEnvironment() *Environment {
 	return &Environment{store: map[string]Object{}}
 }
 
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+	env := NewEnvironment()
+	env.outer = outer
+	return env
+}
+
 func (e *Environment) Get(name string) (Object, bool) {
 	obj, ok := e.store[name]
+	if !ok && e.outer != nil {
+		obj, ok = e.outer.Get(name)
+	}
 	return obj, ok
 }
 
