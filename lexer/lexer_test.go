@@ -28,6 +28,9 @@ if (5 < 10) {
 
 2x;
 x2;
+
+"foobar"
+"foo bar"
 `
 
 	tests := []struct {
@@ -125,6 +128,9 @@ x2;
 
 		{token.IDENT, "x2"},
 		{token.SEMICOLON, ";"},
+
+		{token.STRING, "foobar"},
+		{token.STRING, "foo bar"},
 
 		{token.EOF, ""},
 	}

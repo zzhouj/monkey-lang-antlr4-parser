@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestEvalIntegerExpression(t *testing.T) {
+func TestIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected int64
@@ -58,7 +58,36 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	return true
 }
 
-func TestEvalBooleanExpression(t *testing.T) {
+func TestStringExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{`"hello world"`, "hello world"},
+		{`"hello" + " " + "world"`, "hello world"},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testStringObject(t, evaluated, tt.expected)
+	}
+}
+
+func testStringObject(t *testing.T, obj object.Object, expected string) bool {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("object should be String. got=%T", obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("value of object should be %q. got=%q", expected, result.Value)
+		return false
+	}
+	return true
+}
+
+func TestBooleanExpression(t *testing.T) {
 	tests := []struct {
 		input    string
 		expected bool
@@ -233,6 +262,10 @@ func TestErrorHandling(t *testing.T) {
 		{
 			"foobar",
 			"identifier not found: foobar",
+		},
+		{
+			`"hello" - "world"`,
+			"unknown operator: STRING - STRING",
 		},
 	}
 

@@ -250,6 +250,26 @@ func TestIntegerLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	testStringLiteral(t, stmt.Expression, "hello world")
+}
+
 func TestPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input        string
@@ -310,6 +330,26 @@ func testIntegerLiteral(t *testing.T, exp ast.Expression, value int64) bool {
 
 	if il.TokenLiteral() != fmt.Sprintf("%d", value) {
 		t.Errorf("il.TokenLiteral() should be %d. got=%s", value, il.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+
+func testStringLiteral(t *testing.T, exp ast.Expression, value string) bool {
+	il, ok := exp.(*ast.StringLiteral)
+	if !ok {
+		t.Errorf("exp should be *ast.StringLiteral. got=%T", exp)
+		return false
+	}
+
+	if il.Value != value {
+		t.Errorf("il.Value should be %q. got=%q", value, il.Value)
+		return false
+	}
+
+	if il.TokenLiteral() != value {
+		t.Errorf("il.TokenLiteral() should be %q. got=%q", value, il.TokenLiteral())
 		return false
 	}
 
