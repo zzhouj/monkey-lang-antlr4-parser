@@ -275,6 +275,14 @@ func TestErrorHandling(t *testing.T) {
 			`len("one", "two")`,
 			"wrong number of arguments. got=2, want=1",
 		},
+		{
+			`[1, 2, 3][fn() {}]`,
+			"index operator not supported: ARRAY[FUNCTION]",
+		},
+		{
+			`1[0]`,
+			"index operator not supported: INTEGER[INTEGER]",
+		},
 	}
 
 	for _, tt := range tests {
@@ -393,4 +401,61 @@ func TestArraylExpression(t *testing.T) {
 	testIntegerObject(t, result.Elements[0], 1)
 	testIntegerObject(t, result.Elements[1], 6)
 	testIntegerObject(t, result.Elements[2], 9)
+}
+
+func TestArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1, 2, 3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"let i = 0; [1][i]",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1]",
+			3,
+		},
+		{
+			"let arr = [1, 2, 3]; arr[2]",
+			3,
+		},
+		{
+			"let arr = [1, 2, 3]; arr[0] + arr[1] + arr[2]",
+			6,
+		},
+		{
+			"let arr = [1, 2, 3]; let i = arr[0]; arr[i]",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			nil,
+		},
+		{
+			"[1, 2, 3][-1]",
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		if integer, ok := tt.expected.(int); ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
 }
