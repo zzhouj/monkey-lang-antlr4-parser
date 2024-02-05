@@ -5,6 +5,7 @@ import "monkey/object"
 var builtins = map[string]*object.Builtin{
 	"len":   {Fn: builtinLen},
 	"first": {Fn: builtinFirst},
+	"last":  {Fn: builtinLast},
 }
 
 func builtinLen(args ...object.Object) object.Object {
@@ -39,5 +40,24 @@ func builtinFirst(args ...object.Object) object.Object {
 
 	default:
 		return newError("argument to `first` not supported, got %s", args[0].Type())
+	}
+}
+
+func builtinLast(args ...object.Object) object.Object {
+	if len(args) != 1 {
+		return newError("wrong number of arguments. got=%d, want=1", len(args))
+	}
+
+	switch arg := args[0].(type) {
+	case *object.Array:
+		length := len(arg.Elements)
+		if length > 0 {
+			return arg.Elements[length-1]
+		} else {
+			return NULL
+		}
+
+	default:
+		return newError("argument to `last` not supported, got %s", args[0].Type())
 	}
 }

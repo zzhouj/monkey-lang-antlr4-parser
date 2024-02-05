@@ -291,6 +291,14 @@ func TestErrorHandling(t *testing.T) {
 			`first("one", "two")`,
 			"wrong number of arguments. got=2, want=1",
 		},
+		{
+			`last(1)`,
+			"argument to `last` not supported, got INTEGER",
+		},
+		{
+			`last("one", "two")`,
+			"wrong number of arguments. got=2, want=1",
+		},
 	}
 
 	for _, tt := range tests {
@@ -464,6 +472,14 @@ func TestArrayIndexExpressions(t *testing.T) {
 		},
 		{
 			"first([])",
+			nil,
+		},
+		{
+			"last([1, 2, 3])",
+			3,
+		},
+		{
+			"last([])",
 			nil,
 		},
 	}
