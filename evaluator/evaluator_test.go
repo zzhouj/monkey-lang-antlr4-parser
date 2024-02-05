@@ -46,7 +46,7 @@ func testEval(input string) object.Object {
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 	result, ok := obj.(*object.Integer)
 	if !ok {
-		t.Errorf("object should be Integer. got=%T", obj)
+		t.Errorf("object should be Integer. got=%T (%+v)", obj, obj)
 		return false
 	}
 
@@ -76,7 +76,7 @@ func TestStringExpression(t *testing.T) {
 func testStringObject(t *testing.T, obj object.Object, expected string) bool {
 	result, ok := obj.(*object.String)
 	if !ok {
-		t.Errorf("object should be String. got=%T", obj)
+		t.Errorf("object should be String. got=%T (%+v)", obj, obj)
 		return false
 	}
 
@@ -122,7 +122,7 @@ func TestBooleanExpression(t *testing.T) {
 func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
 	result, ok := obj.(*object.Boolean)
 	if !ok {
-		t.Errorf("object should be Boolean. got=%T", obj)
+		t.Errorf("object should be Boolean. got=%T (%+v)", obj, obj)
 		return false
 	}
 
@@ -267,13 +267,21 @@ func TestErrorHandling(t *testing.T) {
 			`"hello" - "world"`,
 			"unknown operator: STRING - STRING",
 		},
+		{
+			`len(1)`,
+			"argument to `len` not supported, got INTEGER",
+		},
+		{
+			`len("one", "two")`,
+			"wrong number of arguments. got=2, want=1",
+		},
 	}
 
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 
 		if errObj, ok := evaluated.(*object.Error); !ok {
-			t.Errorf("no error object returned. got=%T", evaluated)
+			t.Errorf("no error object returned. got=%T (%+v)", evaluated, evaluated)
 			continue
 		} else if errObj.Message != tt.expectedMessage {
 			t.Errorf("wrong error message. expected=%q, got=%q", tt.expectedMessage, errObj.Message)
@@ -303,7 +311,7 @@ func TestFunctionObject(t *testing.T) {
 	evaluated := testEval(input)
 	fn, ok := evaluated.(*object.Function)
 	if !ok {
-		t.Fatalf("object is not Function. got=%T", evaluated)
+		t.Fatalf("object is not Function. got=%T (%+v)", evaluated, evaluated)
 	}
 
 	if len(fn.Parameters) != 1 {
@@ -351,4 +359,19 @@ func TestClosures(t *testing.T) {
 	addTwo(3)
 	`
 	testIntegerObject(t, testEval(input), 5)
+}
+
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world!")`, 12},
+	}
+
+	for _, tt := range tests {
+		testIntegerObject(t, testEval(tt.input), tt.expected)
+	}
 }
