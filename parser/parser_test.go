@@ -590,6 +590,14 @@ func TestOperatorPrecedence(t *testing.T) {
 			"add(a + b + c * d / f + g)",
 			"add((((a + b) + ((c * d) / f)) + g))",
 		},
+		{
+			"a * [1, 2, 3, 4][b * c] * d",
+			"((a * ([1, 2, 3, 4][(b * c)])) * d)",
+		},
+		{
+			"add(a * b[2], b[1], 2 * [1, 2][1])",
+			"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -889,4 +897,61 @@ func TestCallExpressionArguments(t *testing.T) {
 			testLiteralExpression(t, exp.Arguments[i], arg)
 		}
 	}
+}
+
+func TestArrayLiteralExpression(t *testing.T) {
+	input := `[1, 2 * 3, 4 + 5]`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("exp should be ast.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(array.Elements) != 3 {
+		t.Fatalf("length of array's elements should be 3. got=%d", len(array.Elements))
+	}
+
+	testIntegerLiteral(t, array.Elements[0], 1)
+	testInfixExpression(t, array.Elements[1], 2, "*", 3)
+	testInfixExpression(t, array.Elements[2], 4, "+", 5)
+}
+
+func TestIndexExpression(t *testing.T) {
+	input := `myArray[1 + 2]`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements should contain 1 statement. got=%d", len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("stmt should be *ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+
+	index, ok := stmt.Expression.(*ast.IndexExpression)
+	if !ok {
+		t.Fatalf("exp should be ast.IndexExpression. got=%T", stmt.Expression)
+	}
+
+	testIdentifier(t, index.Left, "myArray")
+	testInfixExpression(t, index.Index, 1, "+", 2)
 }
