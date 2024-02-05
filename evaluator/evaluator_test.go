@@ -283,6 +283,14 @@ func TestErrorHandling(t *testing.T) {
 			`1[0]`,
 			"index operator not supported: INTEGER[INTEGER]",
 		},
+		{
+			`first(1)`,
+			"argument to `first` not supported, got INTEGER",
+		},
+		{
+			`first("one", "two")`,
+			"wrong number of arguments. got=2, want=1",
+		},
 	}
 
 	for _, tt := range tests {
@@ -448,6 +456,14 @@ func TestArrayIndexExpressions(t *testing.T) {
 		},
 		{
 			"[1, 2, 3][-1]",
+			nil,
+		},
+		{
+			"first([1, 2, 3])",
+			1,
+		},
+		{
+			"first([])",
 			nil,
 		},
 	}
