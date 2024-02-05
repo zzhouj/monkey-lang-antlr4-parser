@@ -375,3 +375,22 @@ func TestBuiltinFunctions(t *testing.T) {
 		testIntegerObject(t, testEval(tt.input), tt.expected)
 	}
 }
+
+func TestArraylExpression(t *testing.T) {
+	input := `[1, 2 * 3, 4 + 5]`
+
+	evaluated := testEval(input)
+
+	result, ok := evaluated.(*object.Array)
+	if !ok {
+		t.Fatalf("object should be Array. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if len(result.Elements) != 3 {
+		t.Fatalf("number of elements of array should be 3. got=%d", len(result.Elements))
+	}
+
+	testIntegerObject(t, result.Elements[0], 1)
+	testIntegerObject(t, result.Elements[1], 6)
+	testIntegerObject(t, result.Elements[2], 9)
+}
