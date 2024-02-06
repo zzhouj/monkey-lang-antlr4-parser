@@ -285,7 +285,7 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			`first(1)`,
-			"argument to `first` not supported, got INTEGER",
+			"argument to `first` should be ARRAY, got INTEGER",
 		},
 		{
 			`first("one", "two")`,
@@ -293,7 +293,7 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			`last(1)`,
-			"argument to `last` not supported, got INTEGER",
+			"argument to `last` should be ARRAY, got INTEGER",
 		},
 		{
 			`last("one", "two")`,
@@ -301,11 +301,19 @@ func TestErrorHandling(t *testing.T) {
 		},
 		{
 			`rest(1)`,
-			"argument to `rest` not supported, got INTEGER",
+			"argument to `rest` should be ARRAY, got INTEGER",
 		},
 		{
 			`rest("one", "two")`,
 			"wrong number of arguments. got=2, want=1",
+		},
+		{
+			`push(1, 2)`,
+			"argument to `push` should be ARRAY, got INTEGER",
+		},
+		{
+			`push("one")`,
+			"wrong number of arguments. got=1, want>1",
 		},
 	}
 
@@ -414,6 +422,26 @@ func TestBuiltinFunctions(t *testing.T) {
 		{
 			`rest([])`,
 			`null`,
+		},
+		{
+			`push([],1)`,
+			`[1]`,
+		},
+		{
+			`push([1], 2, 3, 4)`,
+			`[1, 2, 3, 4]`,
+		},
+		{
+			`push([1], [2, 3, 4])`,
+			`[1, [2, 3, 4]]`,
+		},
+		{
+			`let a = [1]; let b = push(a, 2); a`,
+			`[1]`,
+		},
+		{
+			`let a = [1]; let b = push(a, 2); b`,
+			`[1, 2]`,
 		},
 	}
 
