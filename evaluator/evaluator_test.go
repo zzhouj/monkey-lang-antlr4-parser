@@ -299,6 +299,14 @@ func TestErrorHandling(t *testing.T) {
 			`last("one", "two")`,
 			"wrong number of arguments. got=2, want=1",
 		},
+		{
+			`rest(1)`,
+			"argument to `rest` not supported, got INTEGER",
+		},
+		{
+			`rest("one", "two")`,
+			"wrong number of arguments. got=2, want=1",
+		},
 	}
 
 	for _, tt := range tests {
@@ -388,17 +396,39 @@ func TestClosures(t *testing.T) {
 func TestBuiltinFunctions(t *testing.T) {
 	tests := []struct {
 		input    string
-		expected int64
+		expected interface{}
 	}{
 		{`len("")`, 0},
 		{`len("four")`, 4},
 		{`len("hello world!")`, 12},
 		{`len([])`, 0},
 		{`len([1, 2, 3])`, 3},
+		{
+			`rest([1, 2, 3, 4])`,
+			`[2, 3, 4]`,
+		},
+		{
+			`rest([4])`,
+			`[]`,
+		},
+		{
+			`rest([])`,
+			`null`,
+		},
 	}
 
 	for _, tt := range tests {
-		testIntegerObject(t, testEval(tt.input), tt.expected)
+		evaluated := testEval(tt.input)
+
+		switch v := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, evaluated, int64(v))
+		case string:
+			inspect := evaluated.Inspect()
+			if inspect != v {
+				t.Errorf("object inspect should be %q. got=%q", v, inspect)
+			}
+		}
 	}
 }
 
