@@ -1,6 +1,7 @@
 package code
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 )
@@ -60,4 +61,56 @@ func Make(op OpCode, operands ...int) []byte {
 	}
 
 	return instruction
+}
+
+func (ins Instructions) String() string {
+	var out bytes.Buffer
+
+	for i := 0; i < len(ins); {
+		def, err := Lookup(ins[i])
+		if err != nil {
+			fmt.Fprintf(&out, "ERROR: %v\n", err)
+			continue
+		}
+
+		operands, read := ReadOperands(def, ins[i+1:])
+		fmt.Fprintf(&out, "%04d %s\n", i, fmtInstruction(def, operands))
+
+		i += read + 1
+	}
+
+	return out.String()
+}
+
+func ReadOperands(def *Definition, ins Instructions) ([]int, int) {
+	operands := make([]int, len(def.OperandWidths))
+	offset := 0
+
+	for i, w := range def.OperandWidths {
+		switch w {
+		case 2:
+			operands[i] = int(ReadUint16(ins[offset:]))
+		}
+
+		offset += w
+	}
+
+	return operands, offset
+}
+
+func ReadUint16(ins Instructions) uint16 {
+	return binary.BigEndian.Uint16(ins)
+}
+
+func fmtInstruction(def *Definition, operands []int) string {
+	if len(def.OperandWidths) != len(operands) {
+		return fmt.Sprintf("ERROR: wrong number of operands. want=%d, got=%d", len(def.OperandWidths), len(operands))
+	}
+
+	switch len(operands) {
+	case 1:
+		return fmt.Sprintf("%s %d", def.Name, operands[0])
+	}
+
+	return fmt.Sprintf("ERROR: not handled number of operands %d for %s", len(operands), def.Name)
 }
