@@ -4,17 +4,16 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"monkey/evaluator"
+	"monkey/compiler"
 	"monkey/lexer"
-	"monkey/object"
 	"monkey/parser"
+	"monkey/vm"
 )
 
 const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
-	env := object.NewEnvironment()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -34,9 +33,23 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program, env)
-		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
+		comp := compiler.New()
+		err := comp.Compile(program)
+		if err != nil {
+			fmt.Fprintf(out, "compilation failed: %v\n", err)
+			continue
+		}
+
+		vm := vm.New(comp.ByteCode())
+		err = vm.Run()
+		if err != nil {
+			fmt.Fprintf(out, "executing bytecode failed: %v\n", err)
+			continue
+		}
+
+		stackTop := vm.StackTop()
+		if stackTop != nil {
+			io.WriteString(out, stackTop.Inspect())
 			io.WriteString(out, "\n")
 		}
 	}
