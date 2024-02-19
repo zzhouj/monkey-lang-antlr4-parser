@@ -73,6 +73,6 @@ func TestIntegerArithmetic(t *testing.T) {
 	runVmTests(t, []vmTestCase{
 		{"1", 1},
 		{"2", 2},
-		{"1 + 2", 2}, // TODO
+		{"1 + 2", 3},
 	})
 }

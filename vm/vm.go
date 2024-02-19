@@ -45,9 +45,23 @@ func (vm *VM) Run() error {
 			if int(constIdx) >= len(vm.constants) {
 				return fmt.Errorf("invalid constant index: %d", constIdx)
 			}
+
 			if err := vm.push(vm.constants[constIdx]); err != nil {
 				return err
 			}
+
+		case code.OpAdd:
+			right := vm.pop()
+			left := vm.pop()
+			if right == nil || left == nil {
+				return fmt.Errorf("OpAdd missing operands")
+			}
+
+			lv := left.(*object.Integer).Value
+			rv := right.(*object.Integer).Value
+
+			result := lv + rv
+			vm.push(&object.Integer{Value: result})
 		}
 	}
 
@@ -61,6 +75,16 @@ func (vm *VM) push(obj object.Object) error {
 
 	vm.stack[vm.sp] = obj
 	vm.sp++
+
+	return nil
+}
+
+func (vm *VM) pop() object.Object {
+	if vm.sp > 0 {
+		obj := vm.stack[vm.sp-1]
+		vm.sp--
+		return obj
+	}
 
 	return nil
 }
