@@ -61,6 +61,9 @@ func (vm *VM) Run() error {
 				return err
 			}
 
+		case code.OpPop:
+			vm.pop()
+
 		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			err := vm.executeBinaryOperation(op)
 			if err != nil {
@@ -79,8 +82,11 @@ func (vm *VM) Run() error {
 				return err
 			}
 
-		case code.OpPop:
-			vm.pop()
+		case code.OpEQ, code.OpNE, code.OpGT:
+			err := vm.executeComparison(op)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -122,7 +128,6 @@ func (vm *VM) executeBinaryOperation(op code.OpCode) error {
 	default:
 		return fmt.Errorf("unsupported types for binary operation: %s %s", left.Type(), right.Type())
 	}
-
 }
 
 func (vm *VM) executeBinaryIntegerOperation(op code.OpCode, left, right object.Object) error {
@@ -149,4 +154,56 @@ func (vm *VM) executeBinaryIntegerOperation(op code.OpCode, left, right object.O
 	}
 
 	return vm.push(&object.Integer{Value: result})
+}
+
+func (vm *VM) executeComparison(op code.OpCode) error {
+	right := vm.pop()
+	left := vm.pop()
+	if right == nil || left == nil {
+		return fmt.Errorf("comparison missing operands")
+	}
+
+	if left.Type() == object.INTEGER_OBJ && right.Type() == object.INTEGER_OBJ {
+		return vm.executeIntegerComparison(op, left, right)
+	}
+
+	switch op {
+	case code.OpEQ:
+		return vm.push(nativeBoolToBooleanObject(left == right))
+	case code.OpNE:
+		return vm.push(nativeBoolToBooleanObject(left != right))
+	default:
+		return fmt.Errorf("unsupported types for comparison: %s %s", left.Type(), right.Type())
+	}
+}
+
+func (vm *VM) executeIntegerComparison(op code.OpCode, left, right object.Object) error {
+	lv := left.(*object.Integer).Value
+	rv := right.(*object.Integer).Value
+
+	var result bool
+
+	switch op {
+	case code.OpEQ:
+		result = lv == rv
+
+	case code.OpNE:
+		result = lv != rv
+
+	case code.OpGT:
+		result = lv > rv
+
+	default:
+		return fmt.Errorf("unknown integer comparison: op code %d", op)
+	}
+
+	return vm.push(nativeBoolToBooleanObject(result))
+}
+
+func nativeBoolToBooleanObject(nb bool) object.Object {
+	if nb {
+		return TRUE
+	} else {
+		return FALSE
+	}
 }
