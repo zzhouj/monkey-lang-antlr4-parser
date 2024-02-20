@@ -87,6 +87,18 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpBang:
+			err := vm.executeBangOperator()
+			if err != nil {
+				return err
+			}
+
+		case code.OpMinus:
+			err := vm.executeMinusOperator()
+			if err != nil {
+				return nil
+			}
 		}
 	}
 
@@ -206,4 +218,32 @@ func nativeBoolToBooleanObject(nb bool) object.Object {
 	} else {
 		return FALSE
 	}
+}
+
+func (vm *VM) executeBangOperator() error {
+	operand := vm.pop()
+	if operand == nil {
+		return fmt.Errorf("bang operator missing operand")
+	}
+
+	switch operand {
+	case FALSE:
+		return vm.push(TRUE)
+	default:
+		return vm.push(FALSE)
+	}
+}
+
+func (vm *VM) executeMinusOperator() error {
+	operand := vm.pop()
+	if operand == nil {
+		return fmt.Errorf("minus operator missing operand")
+	}
+
+	if operand.Type() != object.INTEGER_OBJ {
+		return fmt.Errorf("unsupported types for minus operator: %s", operand.Type())
+	}
+
+	value := operand.(*object.Integer).Value
+	return vm.push(&object.Integer{Value: -value})
 }

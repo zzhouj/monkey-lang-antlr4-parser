@@ -22,6 +22,8 @@ const (
 	OpEQ
 	OpNE
 	OpGT
+	OpMinus
+	OpBang
 )
 
 type Definition struct {
@@ -41,6 +43,8 @@ var difinitions = map[OpCode]*Definition{
 	OpEQ:       {"OpEQ", []int{}},
 	OpNE:       {"OpNE", []int{}},
 	OpGT:       {"OpGT", []int{}},
+	OpMinus:    {"OpMinus", []int{}},
+	OpBang:     {"OpBang", []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
