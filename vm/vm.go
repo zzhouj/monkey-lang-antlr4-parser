@@ -7,6 +7,12 @@ import (
 	"monkey/object"
 )
 
+var (
+	NULL  = &object.Null{}
+	TRUE  = &object.Boolean{Value: true}
+	FALSE = &object.Boolean{Value: false}
+)
+
 const StackSize = 2048
 
 type VM struct {
@@ -50,12 +56,25 @@ func (vm *VM) Run() error {
 				return fmt.Errorf("invalid constant index: %d", constIdx)
 			}
 
-			if err := vm.push(vm.constants[constIdx]); err != nil {
+			err := vm.push(vm.constants[constIdx])
+			if err != nil {
 				return err
 			}
 
 		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			err := vm.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
+
+		case code.OpTrue:
+			err := vm.push(TRUE)
+			if err != nil {
+				return err
+			}
+
+		case code.OpFalse:
+			err := vm.push(FALSE)
 			if err != nil {
 				return err
 			}
