@@ -121,6 +121,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 		intObj := &object.Integer{Value: node.Value}
 		c.emit(code.OpConstant, c.addConstant(intObj))
 
+	case *ast.StringLiteral:
+		strObj := &object.String{Value: node.Value}
+		c.emit(code.OpConstant, c.addConstant(strObj))
+
 	case *ast.BooleanLiteral:
 		if node.Value {
 			c.emit(code.OpTrue)
