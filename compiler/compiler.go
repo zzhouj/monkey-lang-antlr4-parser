@@ -133,20 +133,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		c.removeLastPopIf()
 
-		if node.Alternative == nil {
-			c.changeOperands(jntPos, len(c.instructions))
-		} else {
-			jPos := c.emit(code.OpJump, 9999)
-			c.changeOperands(jntPos, len(c.instructions))
+		jPos := c.emit(code.OpJump, 9999)
 
+		c.changeOperands(jntPos, len(c.instructions))
+
+		if node.Alternative == nil {
+			c.emit(code.OpNull)
+		} else {
 			err := c.Compile(node.Alternative)
 			if err != nil {
 				return err
 			}
 			c.removeLastPopIf()
-
-			c.changeOperands(jPos, len(c.instructions))
 		}
+
+		c.changeOperands(jPos, len(c.instructions))
 
 	case *ast.BlockStatement:
 		for _, stmt := range node.Statements {

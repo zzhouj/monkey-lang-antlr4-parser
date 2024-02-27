@@ -53,6 +53,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if err != nil {
 			t.Errorf("testBooleanObject failed: %v", err)
 		}
+
+	case *object.Null:
+		if actual != NULL {
+			t.Errorf("object is not Null: %T (%+v)", actual, actual)
+		}
 	}
 }
 
@@ -135,5 +140,19 @@ func TestBooleanExpression(t *testing.T) {
 		{"!!true", true},
 		{"!!false", false},
 		{"!!5", true},
+	})
+}
+
+func TestConditions(t *testing.T) {
+	runVmTests(t, []vmTestCase{
+		{"if (true) { 10 }", 10},
+		{"if (true) { 10 } else { 20 }", 10},
+		{"if (false) { 10 } else { 20 }", 20},
+		{"if (1) { 10 }", 10},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 > 2) { 10 }", NULL},
+		{"if (false) { 10 }", NULL},
 	})
 }

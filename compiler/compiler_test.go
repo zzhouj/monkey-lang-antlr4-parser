@@ -183,14 +183,18 @@ func TestConditions(t *testing.T) {
 				// 0
 				code.Make(code.OpTrue),
 				// 1
-				code.Make(code.OpJumpNotTruthy, 7),
+				code.Make(code.OpJumpNotTruthy, 10),
 				// 4
 				code.Make(code.OpConstant, 0),
 				// 7
-				code.Make(code.OpPop),
-				// 8
-				code.Make(code.OpConstant, 1),
+				code.Make(code.OpJump, 11),
+				// 10
+				code.Make(code.OpNull),
 				// 11
+				code.Make(code.OpPop),
+				// 12
+				code.Make(code.OpConstant, 1),
+				// 15
 				code.Make(code.OpPop),
 			},
 		},
