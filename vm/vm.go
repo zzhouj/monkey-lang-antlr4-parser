@@ -37,6 +37,12 @@ func New(bc *compiler.ByteCode) *VM {
 	}
 }
 
+func NewWithState(bc *compiler.ByteCode, globals []object.Object) *VM {
+	vm := New(bc)
+	vm.globals = globals
+	return vm
+}
+
 func (vm *VM) StackTop() object.Object {
 	if vm.sp > 0 {
 		return vm.stack[vm.sp-1]
