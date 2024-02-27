@@ -7,9 +7,16 @@ import (
 	"monkey/object"
 )
 
+type EmittedInstruction struct {
+	OpCode   code.OpCode
+	Position int
+}
+
 type Compiler struct {
-	instructions code.Instructions
-	constants    []object.Object
+	instructions    code.Instructions
+	constants       []object.Object
+	lastInstruction EmittedInstruction
+	prevInstruction EmittedInstruction
 }
 
 type ByteCode struct {
@@ -111,6 +118,43 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			c.emit(code.OpFalse)
 		}
+
+	case *ast.IfExpression:
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+
+		jntPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(node.Consequence)
+		if err != nil {
+			return err
+		}
+		c.removeLastPopIf()
+
+		if node.Alternative == nil {
+			c.changeOperands(jntPos, len(c.instructions))
+		} else {
+			jPos := c.emit(code.OpJump, 9999)
+			c.changeOperands(jntPos, len(c.instructions))
+
+			err := c.Compile(node.Alternative)
+			if err != nil {
+				return err
+			}
+			c.removeLastPopIf()
+
+			c.changeOperands(jPos, len(c.instructions))
+		}
+
+	case *ast.BlockStatement:
+		for _, stmt := range node.Statements {
+			err := c.Compile(stmt)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -131,6 +175,9 @@ func (c *Compiler) addConstant(obj object.Object) int {
 func (c *Compiler) emit(op code.OpCode, operands ...int) int {
 	ins := code.Make(op, operands...)
 	pos := c.addInstruction(ins)
+
+	c.setLastInstruction(op, pos)
+
 	return pos
 }
 
@@ -138,4 +185,28 @@ func (c *Compiler) addInstruction(ins []byte) int {
 	pos := len(c.instructions)
 	c.instructions = append(c.instructions, ins...)
 	return pos
+}
+
+func (c *Compiler) setLastInstruction(op code.OpCode, pos int) {
+	c.prevInstruction = c.lastInstruction
+	c.lastInstruction = EmittedInstruction{OpCode: op, Position: pos}
+}
+
+func (c *Compiler) removeLastPopIf() {
+	if c.lastInstruction.OpCode == code.OpPop {
+		c.instructions = c.instructions[:c.lastInstruction.Position]
+		c.lastInstruction = c.prevInstruction
+	}
+}
+
+func (c *Compiler) replaceInstruction(pos int, instruction []byte) {
+	for i := 0; i < len(instruction); i++ {
+		c.instructions[pos+i] = instruction[i]
+	}
+}
+
+func (c *Compiler) changeOperands(pos int, operands ...int) {
+	op := code.OpCode(c.instructions[pos])
+	ins := code.Make(op, operands...)
+	c.replaceInstruction(pos, ins)
 }
