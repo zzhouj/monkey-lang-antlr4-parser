@@ -140,6 +140,7 @@ func TestBooleanExpression(t *testing.T) {
 		{"!!true", true},
 		{"!!false", false},
 		{"!!5", true},
+		{"!(if (false) { 10 })", true},
 	})
 }
 
@@ -154,5 +155,6 @@ func TestConditions(t *testing.T) {
 		{"if (1 > 2) { 10 } else { 20 }", 20},
 		{"if (1 > 2) { 10 }", NULL},
 		{"if (false) { 10 }", NULL},
+		{"if (if (false) { 10 }) { 10 } else { 20 }", 20},
 	})
 }
