@@ -389,7 +389,7 @@ func (vm *VM) executeIndexExpression(left, index object.Object) error {
 	case left.Type() == object.HASH_OBJ:
 		return vm.executeHashIndex(left, index)
 	default:
-		return fmt.Errorf("index operator not supported: %s", left.Type())
+		return fmt.Errorf("index operator not supported: %s[%s]", left.Type(), index.Type())
 	}
 }
 
