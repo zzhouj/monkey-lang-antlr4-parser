@@ -291,3 +291,36 @@ func TestIndexExpressions(t *testing.T) {
 		{"{}[0]", NULL},
 	})
 }
+
+func TestFunctionCalls(t *testing.T) {
+	runVmTests(t, []vmTestCase{
+		{
+			`let fivePlusTen = fn() { 5 + 10 }; fivePlusTen();`,
+			15,
+		},
+		{
+			`let one = fn() { 1; }; let two = fn() { 2; }; one() + two();`,
+			3,
+		},
+		{
+			`let earlyExit = fn() { return 99; 100; }; earlyExit();`,
+			99,
+		},
+		{
+			`let earlyExit = fn() { return 99; return 100; }; earlyExit();`,
+			99,
+		},
+		{
+			`let noRet = fn() {}; noRet();`,
+			NULL,
+		},
+		{
+			`let noRet = fn() {}; let noRetTwo = fn() { noRet(); }; noRet(); noRetTwo();`,
+			NULL,
+		},
+		{
+			`let a = fn(){1}; let b = fn(){a}; b()();`,
+			1,
+		},
+	})
+}

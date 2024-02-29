@@ -219,6 +219,35 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
+
+		case code.OpCall:
+			top := vm.StackTop()
+			if top == nil {
+				return fmt.Errorf("calling non-function: %T", top)
+			}
+
+			fn, ok := top.(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("calling non-function: %T", top)
+			}
+
+			vm.pushFrame(NewFrame(fn))
+
+		case code.OpReturnValue, code.OpReturn:
+			var retVal object.Object
+			if op == code.OpReturnValue {
+				retVal = vm.pop()
+			} else {
+				retVal = NULL
+			}
+
+			vm.popFrame()
+			vm.pop()
+
+			err := vm.push(retVal)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
