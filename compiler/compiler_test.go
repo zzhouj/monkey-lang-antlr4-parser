@@ -92,6 +92,17 @@ func testConstants(expected []interface{}, actual []object.Object) error {
 			if err != nil {
 				return fmt.Errorf("constant %d, testStringObject failed: %v", i, err)
 			}
+
+		case []code.Instructions:
+			fn, ok := actual[i].(*object.CompiledFunction)
+			if !ok {
+				return fmt.Errorf("constant %d, not a function: %T", i, actual[i])
+			}
+
+			err := testInstructions(constant, fn.Instructions)
+			if err != nil {
+				return fmt.Errorf("constant %d, testInstructions failed: %v", i, err)
+			}
 		}
 	}
 
@@ -503,6 +514,57 @@ func TestIndexExpressions(t *testing.T) {
 				code.Make(code.OpConstant, 3),
 				code.Make(code.OpSub),
 				code.Make(code.OpIndex),
+				code.Make(code.OpPop),
+			},
+		},
+	})
+}
+
+func TestFunctions(t *testing.T) {
+	runCompilerTests(t, []compilerTestCase{
+		{
+			`fn() { return 5 + 10 }`,
+			[]interface{}{
+				5,
+				10,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			`fn() { 5 + 10 }`,
+			[]interface{}{
+				5,
+				10,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			`fn() {}`,
+			[]interface{}{
+				[]code.Instructions{
+					code.Make(code.OpReturn),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
 				code.Make(code.OpPop),
 			},
 		},
