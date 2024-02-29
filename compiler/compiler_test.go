@@ -570,3 +570,40 @@ func TestFunctions(t *testing.T) {
 		},
 	})
 }
+
+func TestFunctionCalls(t *testing.T) {
+	runCompilerTests(t, []compilerTestCase{
+		{
+			`fn() { 24 }()`,
+			[]interface{}{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			`let noArg = fn() { 24 }; noArg();`,
+			[]interface{}{
+				24,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall),
+				code.Make(code.OpPop),
+			},
+		},
+	})
+}
