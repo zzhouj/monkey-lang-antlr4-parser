@@ -663,5 +663,43 @@ func TestLetStatementScopes(t *testing.T) {
 				code.Make(code.OpPop),
 			},
 		},
+		{
+			`
+			let a = 1;
+			fn() {
+				let b = 2;
+				fn() {
+					let c = 3;
+					a + b + c;
+				} 
+			}`,
+			[]interface{}{
+				1,
+				2,
+				3,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 2),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpGetGlobal, 0),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpAdd),
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpAdd),
+					code.Make(code.OpReturnValue),
+				},
+				[]code.Instructions{
+					code.Make(code.OpConstant, 1),
+					code.Make(code.OpSetLocal, 0),
+					code.Make(code.OpConstant, 3),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 4),
+				code.Make(code.OpPop),
+			},
+		},
 	})
 }

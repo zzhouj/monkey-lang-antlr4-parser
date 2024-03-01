@@ -33,7 +33,7 @@ type VM struct {
 
 func New(bc *compiler.ByteCode) *VM {
 	mainFn := &object.CompiledFunction{Instructions: bc.Instructions}
-	mainFrame := NewFrame(mainFn)
+	mainFrame := NewFrame(mainFn, 0)
 
 	frames := make([]*Frame, MaxFrames)
 	frames[0] = mainFrame
@@ -64,11 +64,13 @@ func (vm *VM) curFrame() *Frame {
 func (vm *VM) pushFrame(f *Frame) {
 	vm.frameIndex++
 	vm.frames[vm.frameIndex] = f
+	vm.sp = f.base + f.fn.NumLocals
 }
 
 func (vm *VM) popFrame() *Frame {
 	f := vm.frames[vm.frameIndex]
 	vm.frameIndex--
+	vm.sp = f.base
 	return f
 }
 
@@ -231,7 +233,7 @@ func (vm *VM) Run() error {
 				return fmt.Errorf("calling non-function: %T", top)
 			}
 
-			vm.pushFrame(NewFrame(fn))
+			vm.pushFrame(NewFrame(fn, vm.sp))
 
 		case code.OpReturnValue, code.OpReturn:
 			var retVal object.Object
@@ -245,6 +247,21 @@ func (vm *VM) Run() error {
 			vm.pop()
 
 			err := vm.push(retVal)
+			if err != nil {
+				return err
+			}
+
+		case code.OpSetLocal:
+			idx := int(code.ReadUint8(ins[ip+1:]))
+			vm.curFrame().ip += 1
+
+			vm.stack[vm.curFrame().base+idx] = vm.pop()
+
+		case code.OpGetLocal:
+			idx := int(code.ReadUint8(ins[ip+1:]))
+			vm.curFrame().ip += 1
+
+			err := vm.push(vm.stack[vm.curFrame().base+idx])
 			if err != nil {
 				return err
 			}

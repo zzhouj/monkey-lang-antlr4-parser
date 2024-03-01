@@ -322,5 +322,47 @@ func TestFunctionCalls(t *testing.T) {
 			`let a = fn(){1}; let b = fn(){a}; b()();`,
 			1,
 		},
+		{
+			`let one = fn() { let one = 1; one}; one()`,
+			1,
+		},
+		{
+			`let oneAndTwo = fn() { let one = 1; let two = 2; one + two }; oneAndTwo()`,
+			3,
+		},
+		{
+			`
+			let oneAndTwo = fn() { let one = 1; let two = 2; one + two };
+			let threeAndFour = fn() { let three = 3; let four = 4; three + four };
+			oneAndTwo() + threeAndFour()`,
+			10,
+		},
+		{
+			`
+			let first = fn() { let foobar = 50; foobar };
+			let second = fn() { let foobar = 100; foobar };
+			first() + second()`,
+			150,
+		},
+		{
+			`
+			let globalSeed = 50;
+			let first = fn() { let num = 1; globalSeed - num };
+			let second = fn() { let num = 2; globalSeed - num };
+			first() + second()`,
+			97,
+		},
+		{
+			`
+			let a = 1;
+			fn() {
+				let b = 2;
+				fn() {
+					let c = 3;
+					a + b + c;
+				} 
+			}()()`,
+			7, // TODO: 6
+		},
 	})
 }
