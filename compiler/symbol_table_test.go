@@ -10,6 +10,8 @@ func TestDefine(t *testing.T) {
 		"d": {"d", LocalScope, 1},
 		"e": {"e", LocalScope, 0},
 		"f": {"f", LocalScope, 1},
+		"g": {"g", BuiltinScope, 0},
+		"h": {"h", BuiltinScope, 1},
 	}
 
 	global := NewSymbolTable()
@@ -19,6 +21,14 @@ func TestDefine(t *testing.T) {
 	for _, name := range []string{"a", "b"} {
 		expected := tests[name]
 		actual := global.Define(name)
+		if actual != expected {
+			t.Errorf("want=%+v, got=%+v", expected, actual)
+		}
+	}
+
+	for i, name := range []string{"g", "h"} {
+		expected := tests[name]
+		actual := global.DefineBuiltin(i, name)
 		if actual != expected {
 			t.Errorf("want=%+v, got=%+v", expected, actual)
 		}

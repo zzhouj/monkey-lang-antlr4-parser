@@ -747,3 +747,38 @@ func TestLetStatementScopes(t *testing.T) {
 		},
 	})
 }
+
+func TestBuiltins(t *testing.T) {
+	runCompilerTests(t, []compilerTestCase{
+		{
+			`len([]); push([], 1)`,
+			[]interface{}{1},
+			[]code.Instructions{
+				code.Make(code.OpGetBuiltin, 0),
+				code.Make(code.OpArray, 0),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpGetBuiltin, 5),
+				code.Make(code.OpArray, 0),
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpCall, 2),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			`fn() { len([]) }`,
+			[]interface{}{
+				[]code.Instructions{
+					code.Make(code.OpGetBuiltin, 0),
+					code.Make(code.OpArray, 0),
+					code.Make(code.OpCall, 1),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			[]code.Instructions{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpPop),
+			},
+		},
+	})
+}
