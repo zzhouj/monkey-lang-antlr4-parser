@@ -223,17 +223,24 @@ func (vm *VM) Run() error {
 			}
 
 		case code.OpCall:
-			top := vm.StackTop()
-			if top == nil {
-				return fmt.Errorf("calling non-function: %T", top)
+			numArgs := int(code.ReadUint8(ins[ip+1:]))
+			vm.curFrame().ip += 1
+
+			fnObj := vm.stack[vm.sp-1-numArgs]
+			if fnObj == nil {
+				return fmt.Errorf("calling non-function: %T", fnObj)
 			}
 
-			fn, ok := top.(*object.CompiledFunction)
+			fn, ok := fnObj.(*object.CompiledFunction)
 			if !ok {
-				return fmt.Errorf("calling non-function: %T", top)
+				return fmt.Errorf("calling non-function: %T", fnObj)
 			}
 
-			vm.pushFrame(NewFrame(fn, vm.sp))
+			if numArgs != fn.NumParameters {
+				return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+			}
+
+			vm.pushFrame(NewFrame(fn, vm.sp-numArgs))
 
 		case code.OpReturnValue, code.OpReturn:
 			var retVal object.Object
