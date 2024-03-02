@@ -70,7 +70,7 @@ func (vm *VM) pushFrame(f *Frame) {
 func (vm *VM) popFrame() *Frame {
 	f := vm.frames[vm.frameIndex]
 	vm.frameIndex--
-	vm.sp = f.base
+	vm.sp = f.base - 1
 	return f
 }
 
@@ -251,7 +251,6 @@ func (vm *VM) Run() error {
 			}
 
 			vm.popFrame()
-			vm.pop()
 
 			err := vm.push(retVal)
 			if err != nil {
