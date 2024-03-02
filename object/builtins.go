@@ -7,11 +7,11 @@ var Builtins = []struct {
 	Builtin *Builtin
 }{
 	{"len", &Builtin{Fn: builtinLen}},
+	{"puts", &Builtin{Fn: builtinPuts}},
 	{"first", &Builtin{Fn: builtinFirst}},
 	{"last", &Builtin{Fn: builtinLast}},
 	{"rest", &Builtin{Fn: builtinRest}},
 	{"push", &Builtin{Fn: builtinPush}},
-	{"puts", &Builtin{Fn: builtinPuts}},
 }
 
 func GetBuiltinByName(name string) *Builtin {
