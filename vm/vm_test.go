@@ -76,6 +76,16 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if actual != NULL {
 			t.Errorf("object is not Null: %T (%+v)", actual, actual)
 		}
+
+	case *object.Error:
+		errObj, ok := actual.(*object.Error)
+		if !ok {
+			t.Errorf("object is not Error: %T (%+v)", actual, actual)
+			return
+		}
+		if errObj.Message != expected.Message {
+			t.Errorf("wrong error message: want=%q, got=%q", expected.Message, errObj.Message)
+		}
 	}
 }
 
@@ -430,4 +440,85 @@ func TestFunctionCallsWithWrongArguments(t *testing.T) {
 			t.Fatalf("wrong VM error: want=%q, got=%q", tt.expected, err.Error())
 		}
 	}
+}
+
+func TestBuiltinFunctions(t *testing.T) {
+	runVmTests(t, []vmTestCase{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world!")`, 12},
+		{`len([])`, 0},
+		{`len([1, 2, 3])`, 3},
+		{`first([1, 2, 3])`, 1},
+		{`last([1, 2, 3])`, 3},
+		{
+			`rest([1, 2, 3, 4])`,
+			[]int{2, 3, 4},
+		},
+		{
+			`rest([4])`,
+			[]int{},
+		},
+		{
+			`rest([])`,
+			NULL,
+		},
+		{
+			`push([],1)`,
+			[]int{1},
+		},
+		{
+			`push([1], 2, 3, 4)`,
+			[]int{1, 2, 3, 4},
+		},
+		{
+			`let a = [1]; let b = push(a, 2); a`,
+			[]int{1},
+		},
+		{
+			`let a = [1]; let b = push(a, 2); b`,
+			[]int{1, 2},
+		},
+		{
+			`len(1)`,
+			&object.Error{Message: "argument to `len` not supported, got INTEGER"},
+		},
+		{
+			`len("one", "two")`,
+			&object.Error{Message: "wrong number of arguments. got=2, want=1"},
+		},
+
+		{
+			`first(1)`,
+			&object.Error{Message: "argument to `first` should be ARRAY, got INTEGER"},
+		},
+		{
+			`first("one", "two")`,
+			&object.Error{Message: "wrong number of arguments. got=2, want=1"},
+		},
+		{
+			`last(1)`,
+			&object.Error{Message: "argument to `last` should be ARRAY, got INTEGER"},
+		},
+		{
+			`last("one", "two")`,
+			&object.Error{Message: "wrong number of arguments. got=2, want=1"},
+		},
+		{
+			`rest(1)`,
+			&object.Error{Message: "argument to `rest` should be ARRAY, got INTEGER"},
+		},
+		{
+			`rest("one", "two")`,
+			&object.Error{Message: "wrong number of arguments. got=2, want=1"},
+		},
+		{
+			`push(1, 2)`,
+			&object.Error{Message: "argument to `push` should be ARRAY, got INTEGER"},
+		},
+		{
+			`push("one")`,
+			&object.Error{Message: "wrong number of arguments. got=1, want>1"},
+		},
+	})
 }

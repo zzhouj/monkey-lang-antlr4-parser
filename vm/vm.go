@@ -226,21 +226,10 @@ func (vm *VM) Run() error {
 			numArgs := int(code.ReadUint8(ins[ip+1:]))
 			vm.curFrame().ip += 1
 
-			fnObj := vm.stack[vm.sp-1-numArgs]
-			if fnObj == nil {
-				return fmt.Errorf("calling non-function: %T", fnObj)
+			err := vm.executeCall(numArgs)
+			if err != nil {
+				return err
 			}
-
-			fn, ok := fnObj.(*object.CompiledFunction)
-			if !ok {
-				return fmt.Errorf("calling non-function: %T", fnObj)
-			}
-
-			if numArgs != fn.NumParameters {
-				return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
-			}
-
-			vm.pushFrame(NewFrame(fn, vm.sp-numArgs))
 
 		case code.OpReturnValue, code.OpReturn:
 			var retVal object.Object
@@ -268,6 +257,16 @@ func (vm *VM) Run() error {
 			vm.curFrame().ip += 1
 
 			err := vm.push(vm.stack[vm.curFrame().base+idx])
+			if err != nil {
+				return err
+			}
+
+		case code.OpGetBuiltin:
+			idx := int(code.ReadUint8(ins[ip+1:]))
+			vm.curFrame().ip += 1
+
+			builtin := object.Builtins[idx]
+			err := vm.push(builtin.Builtin)
 			if err != nil {
 				return err
 			}
@@ -508,4 +507,43 @@ func (vm *VM) executeHashIndex(left, index object.Object) error {
 	}
 
 	return vm.push(pair.Value)
+}
+
+func (vm *VM) executeCall(numArgs int) error {
+	callee := vm.stack[vm.sp-1-numArgs]
+	switch callee := callee.(type) {
+	case *object.CompiledFunction:
+		return vm.callFunction(callee, numArgs)
+	case *object.Builtin:
+		return vm.callBuiltin(callee, numArgs)
+	default:
+		return fmt.Errorf("calling non-function: %T", callee)
+
+	}
+}
+
+func (vm *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
+	if numArgs != fn.NumParameters {
+		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
+	}
+
+	frame := NewFrame(fn, vm.sp-numArgs)
+	vm.pushFrame(frame)
+
+	return nil
+}
+
+func (vm *VM) callBuiltin(builtin *object.Builtin, numArgs int) error {
+	args := vm.stack[vm.sp-numArgs : vm.sp]
+
+	result := builtin.Fn(args...)
+	vm.sp -= numArgs + 1
+
+	if result != nil {
+		vm.push(result)
+	} else {
+		vm.push(NULL)
+	}
+
+	return nil
 }
