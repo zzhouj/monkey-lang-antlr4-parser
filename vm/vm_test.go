@@ -396,7 +396,7 @@ func TestFunctionCalls(t *testing.T) {
 					a + b + c;
 				} 
 			}()()`,
-			7, // TODO: 6
+			6,
 		},
 	})
 }
@@ -519,6 +519,18 @@ func TestBuiltinFunctions(t *testing.T) {
 		{
 			`push("one")`,
 			&object.Error{Message: "wrong number of arguments. got=1, want>1"},
+		},
+	})
+}
+
+func TestClosures(t *testing.T) {
+	runVmTests(t, []vmTestCase{
+		{
+			`
+			fn(a) {
+				fn() {a}
+			}(99)()`,
+			99,
 		},
 	})
 }
