@@ -50,6 +50,9 @@ func TestDefine(t *testing.T) {
 		}
 	}
 
+	tests["c"] = Symbol{"c", FreeScope, 0}
+	tests["d"] = Symbol{"d", FreeScope, 1}
+
 	for name, expected := range tests {
 		actual, ok := local2.Resolve(name)
 		if !ok {

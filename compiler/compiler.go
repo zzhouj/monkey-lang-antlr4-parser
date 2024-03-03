@@ -238,14 +238,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return fmt.Errorf("undefined variable %q", node.Value)
 		}
 
-		switch symbol.Scope {
-		case GlobalScope:
-			c.emit(code.OpGetGlobal, symbol.Index)
-		case LocalScope:
-			c.emit(code.OpGetLocal, symbol.Index)
-		case BuiltinScope:
-			c.emit(code.OpGetBuiltin, symbol.Index)
-		}
+		c.loadSymbol(symbol)
 
 	case *ast.ArrayLiteral:
 		for _, el := range node.Elements {
@@ -312,15 +305,20 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpReturn)
 		}
 
+		freeSymbols := c.symbolTable.FreeSymbols
 		numLocals := c.symbolTable.numDifinitions
 		ins := c.leaveScope()
+
+		for _, s := range freeSymbols {
+			c.loadSymbol(s)
+		}
 
 		cf := &object.CompiledFunction{
 			Instructions:  ins,
 			NumLocals:     numLocals,
 			NumParameters: len(node.Parameters),
 		}
-		c.emit(code.OpClosure, c.addConstant(cf), 0)
+		c.emit(code.OpClosure, c.addConstant(cf), len(freeSymbols))
 
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
@@ -416,4 +414,17 @@ func (c *Compiler) changeOperands(pos int, operands ...int) {
 	op := code.OpCode(c.curInstructions()[pos])
 	ins := code.Make(op, operands...)
 	c.replaceInstruction(pos, ins)
+}
+
+func (c *Compiler) loadSymbol(s Symbol) {
+	switch s.Scope {
+	case GlobalScope:
+		c.emit(code.OpGetGlobal, s.Index)
+	case LocalScope:
+		c.emit(code.OpGetLocal, s.Index)
+	case BuiltinScope:
+		c.emit(code.OpGetBuiltin, s.Index)
+	case FreeScope:
+		c.emit(code.OpGetFree, s.Index)
+	}
 }
