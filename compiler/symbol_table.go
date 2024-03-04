@@ -3,10 +3,11 @@ package compiler
 type SymbolScope string
 
 const (
-	LocalScope   SymbolScope = "LOCAL"
-	GlobalScope  SymbolScope = "GLOBAL"
-	BuiltinScope SymbolScope = "BUILTIN"
-	FreeScope    SymbolScope = "FREE"
+	LocalScope    SymbolScope = "LOCAL"
+	GlobalScope   SymbolScope = "GLOBAL"
+	BuiltinScope  SymbolScope = "BUILTIN"
+	FreeScope     SymbolScope = "FREE"
+	FunctionScope SymbolScope = "FUNCTION"
 )
 
 type Symbol struct {
@@ -48,9 +49,15 @@ func (st *SymbolTable) Define(name string) Symbol {
 }
 
 func (st *SymbolTable) DefineBuiltin(index int, name string) Symbol {
-	symbol := Symbol{name, BuiltinScope, index}
-	st.store[name] = symbol
-	return symbol
+	s := Symbol{name, BuiltinScope, index}
+	st.store[name] = s
+	return s
+}
+
+func (st *SymbolTable) DefineFunction(name string) Symbol {
+	s := Symbol{name, FunctionScope, 0}
+	st.store[name] = s
+	return s
 }
 
 func (st *SymbolTable) defineFree(orig Symbol) Symbol {
@@ -61,12 +68,12 @@ func (st *SymbolTable) defineFree(orig Symbol) Symbol {
 }
 
 func (st *SymbolTable) Resolve(name string) (Symbol, bool) {
-	symbol, ok := st.store[name]
+	s, ok := st.store[name]
 	if !ok && st.Outer != nil {
-		symbol, ok = st.Outer.Resolve(name)
-		if ok && (symbol.Scope != GlobalScope && symbol.Scope != BuiltinScope) {
-			symbol = st.defineFree(symbol)
+		s, ok = st.Outer.Resolve(name)
+		if ok && (s.Scope != GlobalScope && s.Scope != BuiltinScope) {
+			s = st.defineFree(s)
 		}
 	}
-	return symbol, ok
+	return s, ok
 }

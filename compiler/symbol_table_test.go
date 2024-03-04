@@ -12,6 +12,8 @@ func TestDefine(t *testing.T) {
 		"f": {"f", LocalScope, 1},
 		"g": {"g", BuiltinScope, 0},
 		"h": {"h", BuiltinScope, 1},
+		"i": {"i", FunctionScope, 0},
+		"j": {"j", FunctionScope, 0},
 	}
 
 	global := NewSymbolTable()
@@ -50,10 +52,21 @@ func TestDefine(t *testing.T) {
 		}
 	}
 
+	for _, name := range []string{"i", "j"} {
+		expected := tests[name]
+		actual := global.DefineFunction(name)
+		if actual != expected {
+			t.Errorf("want=%+v, got=%+v", expected, actual)
+		}
+	}
+
 	tests["c"] = Symbol{"c", FreeScope, 0}
 	tests["d"] = Symbol{"d", FreeScope, 1}
+	tests["i"] = Symbol{"i", FreeScope, 2}
+	tests["j"] = Symbol{"j", FreeScope, 3}
 
-	for name, expected := range tests {
+	for _, name := range []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j"} {
+		expected := tests[name]
 		actual, ok := local2.Resolve(name)
 		if !ok {
 			t.Errorf("name %q not resolvable", name)
