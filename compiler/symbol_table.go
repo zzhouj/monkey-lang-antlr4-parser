@@ -64,7 +64,7 @@ func (st *SymbolTable) Resolve(name string) (Symbol, bool) {
 	symbol, ok := st.store[name]
 	if !ok && st.Outer != nil {
 		symbol, ok = st.Outer.Resolve(name)
-		if ok && (symbol.Scope == LocalScope || symbol.Scope == FreeScope) {
+		if ok && (symbol.Scope != GlobalScope && symbol.Scope != BuiltinScope) {
 			symbol = st.defineFree(symbol)
 		}
 	}
