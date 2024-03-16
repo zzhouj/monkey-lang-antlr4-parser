@@ -93,6 +93,16 @@ func (p *Parser) ExitExprStat(ctx *monkey.ExprStatContext) {
 	})
 }
 
+func (p *Parser) ExitCallExpr(ctx *monkey.CallExprContext) {
+	args := p.pop().([]ast.Expression)
+	fnExpr := p.pop().(ast.Expression)
+	p.push(&ast.CallExpression{
+		Token:     token.Token{Type: token.LPAREN, Literal: "("},
+		Function:  fnExpr,
+		Arguments: args,
+	})
+}
+
 func (p *Parser) ExitUnOpExpr(ctx *monkey.UnOpExprContext) {
 	right := p.pop().(ast.Expression)
 	op := ctx.GetOp().GetText()
@@ -194,6 +204,15 @@ func (p *Parser) ExitBoolLit(ctx *monkey.BoolLitContext) {
 		Token: token.Token{Type: tokenType, Literal: boolLit},
 		Value: value,
 	})
+}
+
+func (p *Parser) ExitExprs(ctx *monkey.ExprsContext) {
+	n := len(ctx.AllExpr())
+	exprs := make([]ast.Expression, n)
+	for i := n - 1; i >= 0; i-- {
+		exprs[i] = p.pop().(ast.Expression)
+	}
+	p.push(exprs)
 }
 
 func (p *Parser) ExitBlock(ctx *monkey.BlockContext) {
