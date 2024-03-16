@@ -1,9 +1,8 @@
 package evaluator
 
 import (
-	"monkey/lexer"
 	"monkey/object"
-	"monkey/parser"
+	parser "monkey/parser_antlr4"
 	"testing"
 )
 
@@ -35,8 +34,8 @@ func TestIntegerExpression(t *testing.T) {
 }
 
 func testEval(input string) object.Object {
-	l := lexer.New(input)
-	p := parser.New(l)
+	// l := lexer.New(input)
+	p := parser.New(input)
 	program := p.ParseProgram()
 	env := object.NewEnvironment()
 

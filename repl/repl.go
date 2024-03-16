@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io"
 	"monkey/compiler"
-	"monkey/lexer"
 	"monkey/object"
-	"monkey/parser"
+	parser "monkey/parser_antlr4"
 	"monkey/vm"
 )
 
@@ -32,8 +31,8 @@ func Start(in io.Reader, out io.Writer) {
 		}
 
 		line := scanner.Text()
-		l := lexer.New(line)
-		p := parser.New(l)
+		// l := lexer.New(line)
+		p := parser.New(line)
 
 		program := p.ParseProgram()
 		if len(p.Errors()) != 0 {

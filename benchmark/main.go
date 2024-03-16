@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"monkey/compiler"
 	"monkey/evaluator"
-	"monkey/lexer"
 	"monkey/object"
-	"monkey/parser"
+	parser "monkey/parser_antlr4"
 	"monkey/vm"
 	"time"
 )
@@ -35,8 +34,8 @@ func main() {
 	var duration time.Duration
 	var result object.Object
 
-	l := lexer.New(input)
-	p := parser.New(l)
+	// l := lexer.New(input)
+	p := parser.New(input)
 	program := p.ParseProgram()
 
 	if len(p.Errors()) > 0 {

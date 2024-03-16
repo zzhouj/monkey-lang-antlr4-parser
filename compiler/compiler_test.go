@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"monkey/ast"
 	"monkey/code"
-	"monkey/lexer"
 	"monkey/object"
-	"monkey/parser"
+	parser "monkey/parser_antlr4"
 	"testing"
 )
 
@@ -43,8 +42,8 @@ func runCompilerTests(t *testing.T, tests []compilerTestCase) {
 }
 
 func parse(input string) *ast.Program {
-	l := lexer.New(input)
-	p := parser.New(l)
+	// l := lexer.New(input)
+	p := parser.New(input)
 	return p.ParseProgram()
 }
 
