@@ -66,24 +66,30 @@ func (p *Parser) ExitProg(ctx *monkey.ProgContext) {
 
 func (p *Parser) ExitLetStat(ctx *monkey.LetStatContext) {
 	value := p.pop().(ast.Expression)
-	identLit := ctx.IDENT().GetText()
-	name := &ast.Identifier{
-		Token: token.Token{Type: token.IDENT, Literal: identLit},
-		Value: identLit,
-	}
 	p.push(&ast.LetStatement{
 		Token: token.Token{Type: token.LET, Literal: "let"},
-		Name:  name,
+		Name:  newIdentifier(ctx.IDENT().GetText()),
 		Value: value,
 	})
 }
 
-func (p *Parser) ExitIdent(ctx *monkey.IdentContext) {
-	identLit := ctx.IDENT().GetText()
-	p.push(&ast.Identifier{
-		Token: token.Token{Type: token.IDENT, Literal: identLit},
-		Value: identLit,
+func (p *Parser) ExitRetStat(ctx *monkey.RetStatContext) {
+	returnValue := p.pop().(ast.Expression)
+	p.push(&ast.ReturnStatement{
+		Token:       token.Token{Type: token.RETURN, Literal: "return"},
+		ReturnValue: returnValue,
 	})
+}
+
+func (p *Parser) ExitAddSubExpr(ctx *monkey.AddSubExprContext) {
+	right := p.pop().(ast.Expression)
+	left := p.pop().(ast.Expression)
+	op := ctx.GetOp().GetText()
+	p.push(newInfixExpression(op, left, right))
+}
+
+func (p *Parser) ExitIdent(ctx *monkey.IdentContext) {
+	p.push(newIdentifier(ctx.IDENT().GetText()))
 }
 
 func (p *Parser) ExitIntLit(ctx *monkey.IntLitContext) {
@@ -110,4 +116,39 @@ func (p *Parser) ExitBoolLit(ctx *monkey.BoolLitContext) {
 		Token: token.Token{Type: tokenType, Literal: boolLit},
 		Value: value,
 	})
+}
+
+func newIdentifier(identLit string) *ast.Identifier {
+	return &ast.Identifier{
+		Token: token.Token{Type: token.IDENT, Literal: identLit},
+		Value: identLit,
+	}
+}
+
+func newInfixExpression(op string, left, right ast.Expression) *ast.InfixExpression {
+	var tokenType token.TokenType
+	switch op {
+	case "+":
+		tokenType = token.PLUS
+	case "-":
+		tokenType = token.MINUS
+	case "*":
+		tokenType = token.ASTERISK
+	case "/":
+		tokenType = token.SLASH
+	case "<":
+		tokenType = token.LT
+	case ">":
+		tokenType = token.GT
+	case "==":
+		tokenType = token.EQ
+	case "!=":
+		tokenType = token.NOT_EQ
+	}
+	return &ast.InfixExpression{
+		Token:    token.Token{Type: tokenType, Literal: op},
+		Left:     left,
+		Operator: op,
+		Right:    right,
+	}
 }
