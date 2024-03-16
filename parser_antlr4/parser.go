@@ -109,6 +109,17 @@ func (p *Parser) ExitIntLit(ctx *monkey.IntLitContext) {
 	})
 }
 
+func (p *Parser) ExitStrLit(ctx *monkey.StrLitContext) {
+	strLit := ctx.STRING().GetText()
+	if len(strLit) >= 2 {
+		strLit = strLit[1 : len(strLit)-1]
+	}
+	p.push(&ast.StringLiteral{
+		Token: token.Token{Type: token.STRING, Literal: strLit},
+		Value: strLit,
+	})
+}
+
 func (p *Parser) ExitBoolLit(ctx *monkey.BoolLitContext) {
 	boolLit := ctx.GetText()
 	var tokenType token.TokenType
