@@ -93,6 +93,16 @@ func (p *Parser) ExitExprStat(ctx *monkey.ExprStatContext) {
 	})
 }
 
+func (p *Parser) ExitIndexExpr(ctx *monkey.IndexExprContext) {
+	index := p.pop().(ast.Expression)
+	left := p.pop().(ast.Expression)
+	p.push(&ast.IndexExpression{
+		Token: token.Token{Type: token.LBRACKET, Literal: "["},
+		Left:  left,
+		Index: index,
+	})
+}
+
 func (p *Parser) ExitCallExpr(ctx *monkey.CallExprContext) {
 	args := p.pop().([]ast.Expression)
 	fnExpr := p.pop().(ast.Expression)
