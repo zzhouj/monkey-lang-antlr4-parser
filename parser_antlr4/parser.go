@@ -81,6 +81,14 @@ func (p *Parser) ExitRetStat(ctx *monkey.RetStatContext) {
 	})
 }
 
+func (p *Parser) ExitExprStat(ctx *monkey.ExprStatContext) {
+	expr := p.pop().(ast.Expression)
+	p.push(&ast.ExpressionStatement{
+		Token:      token.Token{}, // TODO
+		Expression: expr,
+	})
+}
+
 func (p *Parser) ExitAddSubExpr(ctx *monkey.AddSubExprContext) {
 	right := p.pop().(ast.Expression)
 	left := p.pop().(ast.Expression)
