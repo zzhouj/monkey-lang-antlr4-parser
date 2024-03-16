@@ -95,7 +95,28 @@ func (p *Parser) ExitUnOpExpr(ctx *monkey.UnOpExprContext) {
 	p.push(newPrefixExpression(op, right))
 }
 
+func (p *Parser) ExitMulDivExpr(ctx *monkey.MulDivExprContext) {
+	right := p.pop().(ast.Expression)
+	left := p.pop().(ast.Expression)
+	op := ctx.GetOp().GetText()
+	p.push(newInfixExpression(op, left, right))
+}
+
 func (p *Parser) ExitAddSubExpr(ctx *monkey.AddSubExprContext) {
+	right := p.pop().(ast.Expression)
+	left := p.pop().(ast.Expression)
+	op := ctx.GetOp().GetText()
+	p.push(newInfixExpression(op, left, right))
+}
+
+func (p *Parser) ExitLtGtExpr(ctx *monkey.LtGtExprContext) {
+	right := p.pop().(ast.Expression)
+	left := p.pop().(ast.Expression)
+	op := ctx.GetOp().GetText()
+	p.push(newInfixExpression(op, left, right))
+}
+
+func (p *Parser) ExitEqNeExpr(ctx *monkey.EqNeExprContext) {
 	right := p.pop().(ast.Expression)
 	left := p.pop().(ast.Expression)
 	op := ctx.GetOp().GetText()
