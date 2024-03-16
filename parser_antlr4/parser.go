@@ -165,6 +165,14 @@ func (p *Parser) ExitFnLit(ctx *monkey.FnLitContext) {
 	})
 }
 
+func (p *Parser) ExitArrLit(ctx *monkey.ArrLitContext) {
+	elements := p.pop().([]ast.Expression)
+	p.push(&ast.ArrayLiteral{
+		Token:    token.Token{Type: token.LBRACKET, Literal: "["},
+		Elements: elements,
+	})
+}
+
 func (p *Parser) ExitIdent(ctx *monkey.IdentContext) {
 	p.push(newIdentifier(ctx.IDENT().GetText()))
 }
