@@ -89,6 +89,12 @@ func (p *Parser) ExitExprStat(ctx *monkey.ExprStatContext) {
 	})
 }
 
+func (p *Parser) ExitUnOpExpr(ctx *monkey.UnOpExprContext) {
+	right := p.pop().(ast.Expression)
+	op := ctx.GetOp().GetText()
+	p.push(newPrefixExpression(op, right))
+}
+
 func (p *Parser) ExitAddSubExpr(ctx *monkey.AddSubExprContext) {
 	right := p.pop().(ast.Expression)
 	left := p.pop().(ast.Expression)
@@ -141,6 +147,21 @@ func newIdentifier(identLit string) *ast.Identifier {
 	return &ast.Identifier{
 		Token: token.Token{Type: token.IDENT, Literal: identLit},
 		Value: identLit,
+	}
+}
+
+func newPrefixExpression(op string, right ast.Expression) *ast.PrefixExpression {
+	var tokenType token.TokenType
+	switch op {
+	case "-":
+		tokenType = token.MINUS
+	case "!":
+		tokenType = token.BANG
+	}
+	return &ast.PrefixExpression{
+		Token:    token.Token{Type: tokenType, Literal: op},
+		Operator: op,
+		Right:    right,
 	}
 }
 
