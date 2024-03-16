@@ -14,7 +14,7 @@ type Parser struct {
 	parser *monkey.MonkeyParser
 
 	errors []string
-	stk    []ast.Node
+	stk    []any
 }
 
 func New(input string) *Parser {
@@ -27,11 +27,11 @@ func New(input string) *Parser {
 	}
 }
 
-func (p *Parser) push(n ast.Node) {
+func (p *Parser) push(n any) {
 	p.stk = append(p.stk, n)
 }
 
-func (p *Parser) pop() ast.Node {
+func (p *Parser) pop() any {
 	if len(p.stk) > 0 {
 		result := p.stk[len(p.stk)-1]
 		p.stk = p.stk[:len(p.stk)-1]
@@ -66,9 +66,13 @@ func (p *Parser) ExitProg(ctx *monkey.ProgContext) {
 
 func (p *Parser) ExitLetStat(ctx *monkey.LetStatContext) {
 	value := p.pop().(ast.Expression)
+	name := ctx.IDENT().GetText()
+	if fnLit, ok := value.(*ast.FunctionLiteral); ok {
+		fnLit.Name = name
+	}
 	p.push(&ast.LetStatement{
 		Token: token.Token{Type: token.LET, Literal: "let"},
-		Name:  newIdentifier(ctx.IDENT().GetText()),
+		Name:  newIdentifier(name),
 		Value: value,
 	})
 }
@@ -141,6 +145,16 @@ func (p *Parser) ExitIfExpr(ctx *monkey.IfExprContext) {
 	})
 }
 
+func (p *Parser) ExitFnLit(ctx *monkey.FnLitContext) {
+	body := p.pop().(*ast.BlockStatement)
+	params := p.pop().([]*ast.Identifier)
+	p.push(&ast.FunctionLiteral{
+		Token:      token.Token{Type: token.FUNCTION, Literal: "fn"},
+		Parameters: params,
+		Body:       body,
+	})
+}
+
 func (p *Parser) ExitIdent(ctx *monkey.IdentContext) {
 	p.push(newIdentifier(ctx.IDENT().GetText()))
 }
@@ -192,6 +206,15 @@ func (p *Parser) ExitBlock(ctx *monkey.BlockContext) {
 		Token:      token.Token{Type: token.LBRACE, Literal: "{"},
 		Statements: stats,
 	})
+}
+
+func (p *Parser) ExitParams(ctx *monkey.ParamsContext) {
+	n := len(ctx.AllIDENT())
+	params := make([]*ast.Identifier, n)
+	for i := 0; i < n; i++ {
+		params[i] = newIdentifier(ctx.IDENT(i).GetText())
+	}
+	p.push(params)
 }
 
 func newIdentifier(identLit string) *ast.Identifier {
