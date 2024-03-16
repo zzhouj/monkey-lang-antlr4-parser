@@ -123,6 +123,24 @@ func (p *Parser) ExitEqNeExpr(ctx *monkey.EqNeExprContext) {
 	p.push(newInfixExpression(op, left, right))
 }
 
+func (p *Parser) ExitIfExpr(ctx *monkey.IfExprContext) {
+	var conseq, alter *ast.BlockStatement
+	switch len(ctx.AllBlock()) {
+	case 1:
+		conseq = p.pop().(*ast.BlockStatement)
+	case 2:
+		alter = p.pop().(*ast.BlockStatement)
+		conseq = p.pop().(*ast.BlockStatement)
+	}
+	cond := p.pop().(ast.Expression)
+	p.push(&ast.IfExpression{
+		Token:       token.Token{Type: token.IF, Literal: "if"},
+		Condition:   cond,
+		Consequence: conseq,
+		Alternative: alter,
+	})
+}
+
 func (p *Parser) ExitIdent(ctx *monkey.IdentContext) {
 	p.push(newIdentifier(ctx.IDENT().GetText()))
 }
@@ -161,6 +179,18 @@ func (p *Parser) ExitBoolLit(ctx *monkey.BoolLitContext) {
 	p.push(&ast.BooleanLiteral{
 		Token: token.Token{Type: tokenType, Literal: boolLit},
 		Value: value,
+	})
+}
+
+func (p *Parser) ExitBlock(ctx *monkey.BlockContext) {
+	n := len(ctx.AllStat())
+	stats := make([]ast.Statement, n)
+	for i := n - 1; i >= 0; i-- {
+		stats[i] = p.pop().(ast.Statement)
+	}
+	p.push(&ast.BlockStatement{
+		Token:      token.Token{Type: token.LBRACE, Literal: "{"},
+		Statements: stats,
 	})
 }
 
