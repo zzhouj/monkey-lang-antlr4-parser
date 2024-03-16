@@ -94,3 +94,20 @@ func (p *Parser) ExitIntLit(ctx *monkey.IntLitContext) {
 		Value: value,
 	})
 }
+
+func (p *Parser) ExitBoolLit(ctx *monkey.BoolLitContext) {
+	boolLit := ctx.GetText()
+	var tokenType token.TokenType
+	var value bool
+	if boolLit == "true" {
+		tokenType = token.TRUE
+		value = true
+	} else {
+		tokenType = token.FALSE
+		value = false
+	}
+	p.push(&ast.BooleanLiteral{
+		Token: token.Token{Type: tokenType, Literal: boolLit},
+		Value: value,
+	})
+}
