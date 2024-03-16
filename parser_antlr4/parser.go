@@ -183,6 +183,14 @@ func (p *Parser) ExitArrLit(ctx *monkey.ArrLitContext) {
 	})
 }
 
+func (p *Parser) ExitHashLit(ctx *monkey.HashLitContext) {
+	pairs := p.pop().(map[ast.Expression]ast.Expression)
+	p.push(&ast.HashLiteral{
+		Token: token.Token{Type: token.LBRACE, Literal: "{"},
+		Pairs: pairs,
+	})
+}
+
 func (p *Parser) ExitIdent(ctx *monkey.IdentContext) {
 	p.push(newIdentifier(ctx.IDENT().GetText()))
 }
@@ -252,6 +260,21 @@ func (p *Parser) ExitParams(ctx *monkey.ParamsContext) {
 		params[i] = newIdentifier(ctx.IDENT(i).GetText())
 	}
 	p.push(params)
+}
+
+func (p *Parser) ExitPairs(ctx *monkey.PairsContext) {
+	n := len(ctx.AllPair())
+	keys := make([]ast.Expression, n)
+	values := make([]ast.Expression, n)
+	for i := n - 1; i >= 0; i-- {
+		values[i] = p.pop().(ast.Expression)
+		keys[i] = p.pop().(ast.Expression)
+	}
+	pairs := map[ast.Expression]ast.Expression{}
+	for i := 0; i < n; i++ {
+		pairs[keys[i]] = values[i]
+	}
+	p.push(pairs)
 }
 
 func newIdentifier(identLit string) *ast.Identifier {
