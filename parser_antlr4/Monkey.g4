@@ -10,38 +10,32 @@ fragment DIFIT : [0-9] ;
 
 prog : stat* ;
 
-stat : letStat
-     | retStat
-     | exprStat
+stat : 'let' IDENT '=' expr  ';'?  # letStat
+     | 'return' expr ';'?          # retStat
+     | expr ';'?                   # exprStat
      ;
 
-block : '{' stat* '}' ;
-
-letStat : 'let' IDENT '=' expr  ';'? ;
-
-retStat : 'return' expr ';' ;
-
-exprStat : expr ';' ;
-
-expr : expr '[' expr ']'
-     | expr '(' exprs ')'
-     | op=('-'|'!') expr
-     | expr op=('*'|'/') expr
-     | expr op=('+'|'-') expr
-     | expr op=('<'|'>') expr
-     | expr op=('=='|'!=') expr
-     | 'if' '(' expr ')' block ('else' block)?
-     | 'fn' '(' params ')' block
-     | '[' exprs ']'
-     | '{' pairs '}'
-     | IDENT
-     | INT
-     | STRING
-     | ('true'|'false')
-     | '(' expr ')'
+expr : expr '[' expr ']'                          # indexExpr
+     | expr '(' exprs ')'                         # callExpr
+     | op=('-'|'!') expr                          # unOpExpr
+     | expr op=('*'|'/') expr                     # mulDivExpr
+     | expr op=('+'|'-') expr                     # addSubExpr
+     | expr op=('<'|'>') expr                     # ltGtExpr
+     | expr op=('=='|'!=') expr                   # eqNeExpr
+     | 'if' '(' expr ')' block ('else' block)?    # ifExpr
+     | 'fn' '(' params ')' block                  # fnLit
+     | '[' exprs ']'                              # arrLit
+     | '{' pairs '}'                              # hashLit
+     | IDENT                                      # ident
+     | INT                                        # intLit
+     | STRING                                     # strLit
+     | ('true'|'false')                           # boolLit
+     | '(' expr ')'                               # parenExpr
      ;
 
 exprs : expr (',' expr)* | ;
+
+block : '{' stat* '}' ;
 
 params : IDENT (',' IDENT)* | ;
 
