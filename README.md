@@ -5,7 +5,7 @@ The Monkey programming language designed in [_Writing An Interpreter In Go_](htt
 # ANTLR4 parser
 
 1. Write an ANTLR4 grammer rule file for Monkey Lang:
-```antlr4
+```antlr
 grammar Monkey;
 
 IDENT  : LETER (LETER | DIFIT)* ;
@@ -53,7 +53,7 @@ pair: expr ':' expr ;
 ```
 
 2. Generate Golang target source code for Lexer & Parser of Monkey Lang:
-```shell
+```bash
 % java -jar /usr/local/lib/antlr-4.13.1-complete.jar -Dlanguage=Go -o monkey Monkey.g4
 
 % ls monkey 
