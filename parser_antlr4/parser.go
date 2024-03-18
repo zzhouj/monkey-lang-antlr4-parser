@@ -11,6 +11,7 @@ import (
 
 type Parser struct {
 	*monkey.BaseMonkeyListener
+	*antlr.DefaultErrorListener
 	parser *monkey.MonkeyParser
 
 	errors []string
@@ -21,10 +22,13 @@ func New(input string) *Parser {
 	lexer := monkey.NewMonkeyLexer(antlr.NewInputStream(input))
 	parser := monkey.NewMonkeyParser(antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel))
 
-	return &Parser{
+	p := &Parser{
 		BaseMonkeyListener: &monkey.BaseMonkeyListener{},
 		parser:             parser,
 	}
+	parser.RemoveErrorListeners()
+	parser.AddErrorListener(p)
+	return p
 }
 
 func (p *Parser) push(n any) {
@@ -41,12 +45,22 @@ func (p *Parser) pop() any {
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
-	antlr.NewParseTreeWalker().Walk(p, p.parser.Prog())
+	prog := p.parser.Prog()
+	if len(p.errors) > 0 {
+		return &ast.Program{
+			Statements: []ast.Statement{},
+		}
+	}
+	antlr.NewParseTreeWalker().Walk(p, prog)
 	return p.pop().(*ast.Program)
 }
 
 func (p *Parser) Errors() []string {
 	return p.errors
+}
+
+func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, _ antlr.RecognitionException) {
+	p.errors = append(p.errors, "line "+strconv.Itoa(line)+":"+strconv.Itoa(column)+" "+msg)
 }
 
 func (p *Parser) VisitErrorNode(node antlr.ErrorNode) {
