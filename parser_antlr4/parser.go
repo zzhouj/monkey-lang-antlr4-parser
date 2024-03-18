@@ -26,8 +26,13 @@ func New(input string) *Parser {
 		BaseMonkeyListener: &monkey.BaseMonkeyListener{},
 		parser:             parser,
 	}
+
+	lexer.RemoveErrorListeners()
+	lexer.AddErrorListener(p)
+
 	parser.RemoveErrorListeners()
 	parser.AddErrorListener(p)
+
 	return p
 }
 
