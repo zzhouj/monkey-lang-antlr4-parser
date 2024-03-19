@@ -82,42 +82,59 @@ import (
 
 type Parser struct {
 	*monkey.BaseMonkeyListener
+	*antlr.DefaultErrorListener
 	parser *monkey.MonkeyParser
 
 	errors []string
-	stk    []any
+	values map[antlr.ParserRuleContext]any
 }
 
 func New(input string) *Parser {
 	lexer := monkey.NewMonkeyLexer(antlr.NewInputStream(input))
 	parser := monkey.NewMonkeyParser(antlr.NewCommonTokenStream(lexer, antlr.TokenDefaultChannel))
 
-	return &Parser{
-		BaseMonkeyListener: &monkey.BaseMonkeyListener{},
-		parser:             parser,
+	p := &Parser{
+		BaseMonkeyListener:   &monkey.BaseMonkeyListener{},
+		DefaultErrorListener: &antlr.DefaultErrorListener{},
+		parser:               parser,
+		errors:               []string{},
+		values:               map[antlr.ParserRuleContext]any{},
 	}
+
+	lexer.RemoveErrorListeners()
+	lexer.AddErrorListener(p)
+
+	parser.RemoveErrorListeners()
+	parser.AddErrorListener(p)
+
+	return p
 }
 
-func (p *Parser) push(n any) {
-	p.stk = append(p.stk, n)
+func (p *Parser) setValue(ctx antlr.ParserRuleContext, value any) {
+	p.values[ctx] = value
 }
 
-func (p *Parser) pop() any {
-	if len(p.stk) > 0 {
-		result := p.stk[len(p.stk)-1]
-		p.stk = p.stk[:len(p.stk)-1]
-		return result
-	}
-	return nil
+func (p *Parser) getValue(ctx antlr.ParserRuleContext) any {
+	return p.values[ctx]
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
-	antlr.NewParseTreeWalker().Walk(p, p.parser.Prog())
-	return p.pop().(*ast.Program)
+	prog := p.parser.Prog()
+	if len(p.errors) > 0 {
+		return &ast.Program{
+			Statements: []ast.Statement{},
+		}
+	}
+	antlr.NewParseTreeWalker().Walk(p, prog)
+	return p.getValue(prog).(*ast.Program)
 }
 
 func (p *Parser) Errors() []string {
 	return p.errors
+}
+
+func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, _ antlr.RecognitionException) {
+	p.errors = append(p.errors, "line "+strconv.Itoa(line)+":"+strconv.Itoa(column)+" "+msg)
 }
 
 func (p *Parser) VisitErrorNode(node antlr.ErrorNode) {
@@ -127,21 +144,21 @@ func (p *Parser) VisitErrorNode(node antlr.ErrorNode) {
 func (p *Parser) ExitProg(ctx *monkey.ProgContext) {
 	n := len(ctx.AllStat())
 	stats := make([]ast.Statement, n)
-	for i := n - 1; i >= 0; i-- {
-		stats[i] = p.pop().(ast.Statement)
+	for i := 0; i < n; i++ {
+		stats[i] = p.getValue(ctx.Stat(i)).(ast.Statement)
 	}
-	p.push(&ast.Program{
+	p.setValue(ctx, &ast.Program{
 		Statements: stats,
 	})
 }
 
 func (p *Parser) ExitLetStat(ctx *monkey.LetStatContext) {
-	value := p.pop().(ast.Expression)
+	value := p.getValue(ctx.Expr()).(ast.Expression)
 	name := ctx.IDENT().GetText()
 	if fnLit, ok := value.(*ast.FunctionLiteral); ok {
 		fnLit.Name = name
 	}
-	p.push(&ast.LetStatement{
+	p.setValue(ctx, &ast.LetStatement{
 		Token: token.Token{Type: token.LET, Literal: "let"},
 		Name:  newIdentifier(name),
 		Value: value,
